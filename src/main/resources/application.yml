@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/userdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driverClassName: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL57InnoDBDialect
+    hibernate:
+      ddl-auto: update
+  application:
+    name: AUTH-SERVICE
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:9296}
+
+jwt:
+  secret: mySecretKey
+  expireMs: 120000
+  refrEshexpireMs: 120000
