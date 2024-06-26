@@ -1,17 +1,22 @@
 package com.microservice.authservice.jwt;
 
-import com.microservice.authservice.security.CustomUserDetails;
-import com.microservice.authservice.security.CustomUserDetailsService;
-import io.jsonwebtoken.*;
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+
+import com.microservice.authservice.security.CustomUserDetailsService;
+
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 
 @Component
 public class JwtUtils {
@@ -27,18 +32,18 @@ public class JwtUtils {
 	@Autowired
 	private CustomUserDetailsService customUserDetailsService;
 
-	public String generateJwtToken(String username) {
-		return generateTokenFromUsername(username);
+	public String generateJwtToken(String username, String userId) {
+		return generateTokenFromUsername(username, userId);
 	}
 
-	public String generateTokenFromUsername(String username) {
+	public String generateTokenFromUsername(String username, String userId) {
 		UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 		StringBuilder roles = new StringBuilder();
 		userDetails.getAuthorities().forEach(role -> {
 			roles.append(role.getAuthority() + " ");
 		});
-		return Jwts.builder().setSubject(username).setIssuer(roles.toString()).setIssuedAt(new Date())
-				.setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+		return Jwts.builder().claim("userid", userId).setSubject(username).setIssuer(roles.toString())
+				.setIssuedAt(new Date()).setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
 				.signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
 	}
 

@@ -20,6 +20,7 @@ import com.microservice.authservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -127,7 +128,7 @@ public class AuthController {
 		Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-		String jwt = jwtUtils.generateJwtToken(userDetails.getUsername());
+		String jwt = jwtUtils.generateJwtToken(userDetails.getUsername(), String.valueOf(userDetails.getId()));
 
 		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 				.collect(Collectors.toList());
@@ -145,7 +146,7 @@ public class AuthController {
 		return ResponseEntity.ok(jwtResponse);
 	}
 
-	@PostMapping("/refreshtoken")
+	@PostMapping(value = "/refreshtoken", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> refreshtoken(@RequestBody TokenRefreshRequest request) {
 
 		String requestRefreshToken = request.getRefreshToken();
@@ -157,7 +158,8 @@ public class AuthController {
 
 		User userRefreshToken = deletedToken.getUser();
 
-		String newToken = jwtUtils.generateTokenFromUsername(userRefreshToken.getUsername());
+		String newToken = jwtUtils.generateTokenFromUsername(userRefreshToken.getUsername(),
+				String.valueOf(userRefreshToken.getId()));
 
 		return ResponseEntity.ok(new TokenRefreshResponse(newToken, requestRefreshToken));
 	}
