@@ -88,6 +88,12 @@
             <version>3.1.4</version>
         </dependency>
 
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot2</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
     </dependencies>
 
 	<dependencyManagement>
