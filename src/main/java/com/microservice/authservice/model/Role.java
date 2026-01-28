@@ -9,7 +9,6 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "Roles")
-@NoArgsConstructor
 @Getter
 @Setter
 public class Role extends IdBasedEntity implements Serializable {

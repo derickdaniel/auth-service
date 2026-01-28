@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 public class ApiError implements Serializable {
 
 	private int statusCode;

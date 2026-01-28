@@ -1,12 +1,12 @@
 package com.microservice.authservice.controller;
 
+import com.microservice.authservice.config.feign.NotificationClient;
+import com.microservice.authservice.dto.NotificationRequest;
+import com.microservice.authservice.dto.UserInfoResponse;
 import com.microservice.authservice.exception.RefreshTokenException;
 import com.microservice.authservice.exception.RoleException;
 import com.microservice.authservice.jwt.JwtUtils;
-import com.microservice.authservice.model.ERole;
-import com.microservice.authservice.model.RefreshToken;
-import com.microservice.authservice.model.Role;
-import com.microservice.authservice.model.User;
+import com.microservice.authservice.model.*;
 import com.microservice.authservice.payload.request.LoginRequest;
 import com.microservice.authservice.payload.request.SignUpRequest;
 import com.microservice.authservice.payload.request.TokenRefreshRequest;
@@ -26,14 +26,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,6 +54,8 @@ public class AuthController {
 	private PasswordEncoder encoder;
 	@Autowired
 	private JwtUtils jwtUtils;
+    @Autowired
+    private NotificationClient notificationClient;
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@RequestBody SignUpRequest signUpRequest) {
@@ -113,7 +115,15 @@ public class AuthController {
 
 		user.setRoles(roles);
 		userService.saveUser(user);
-
+        User userDetail = userService.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        notificationClient.notifyAction(
+                new NotificationRequest(
+                        userDetail.getEmail(),
+                        UserAction.REGISTER.toString(),
+                        userDetail.getUsername(), LocalDate.now()
+                )
+        );
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
 
@@ -143,6 +153,16 @@ public class AuthController {
 		jwtResponse.setRefreshToken(refreshToken.getToken());
 		jwtResponse.setRoles(roles);
 
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        notificationClient.notifyAction(
+                new NotificationRequest(
+                        user.getEmail(),
+                        UserAction.LOGIN.toString(),
+                        user.getUsername(), LocalDate.now()
+                )
+        );
 		return ResponseEntity.ok(jwtResponse);
 	}
 
@@ -163,4 +183,17 @@ public class AuthController {
 
 		return ResponseEntity.ok(new TokenRefreshResponse(newToken, requestRefreshToken));
 	}
+
+    @GetMapping("/by-username/{username}")
+    public UserInfoResponse getByUsername(
+            @PathVariable String username) {
+
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new UserInfoResponse(
+                user.getUsername(),
+                user.getEmail()
+        );
+    }
 }
