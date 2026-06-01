@@ -18,8 +18,8 @@ spring:
 
 jwt:
   secret: mySecretKey
-  expireMs: 600000
-  refrEshexpireMs: 600000
+  expireMs: 86400000 #1day
+  refrEshexpireMs: 86400000
   
 eureka:
   instance:

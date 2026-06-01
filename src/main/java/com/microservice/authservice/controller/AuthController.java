@@ -153,16 +153,16 @@ public class AuthController {
 		jwtResponse.setRefreshToken(refreshToken.getToken());
 		jwtResponse.setRoles(roles);
 
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        notificationClient.notifyAction(
-                new NotificationRequest(
-                        user.getEmail(),
-                        UserAction.LOGIN.toString(),
-                        user.getUsername(), LocalDate.now()
-                )
-        );
+//        User user = userService.findByUsername(username)
+//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+//
+//        notificationClient.notifyAction(
+//                new NotificationRequest(
+//                        user.getEmail(),
+//                        UserAction.LOGIN.toString(),
+//                        user.getUsername(), LocalDate.now()
+//                )
+//        );
 		return ResponseEntity.ok(jwtResponse);
 	}
 
